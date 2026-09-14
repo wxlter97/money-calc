@@ -1,9 +1,11 @@
 <script>
   let { titulo = null } = $props();
+
+  const PORTFOLIO_HOME_URL = 'https://home.wxlter.dev/';
 </script>
 
 <header class="app-header">
-  <a class="app-header__marca" href="#/">
+  <a class="app-header__marca" href={PORTFOLIO_HOME_URL} title="Volver al inicio del portafolio">
     <svg class="app-header__mark" viewBox="0 0 100 100" width="26" height="26" aria-hidden="true">
       <rect width="100" height="100" fill="#111111" />
       <polyline
