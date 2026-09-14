@@ -5,8 +5,9 @@
 <section class="vista-hub">
   <h1>Money Calc</h1>
   <p>
-    Calculadoras de salario, prestaciones y descuentos de ley basadas en el
-    Código de Trabajo y la Ley de Impuesto Sobre la Renta de El Salvador.
+    Calculadoras de salario, prestaciones y descuentos de ley de El Salvador,
+    junto con herramientas financieras de uso general: préstamos, ahorro,
+    inversión y planificación.
   </p>
 </section>
 
