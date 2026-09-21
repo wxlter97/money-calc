@@ -21,7 +21,7 @@ export const calculadoras = [
     slug: 'salario',
     titulo: 'Salario y descuentos de ley',
     resumen:
-      'Salario neto mensual y quincenal: AFP, ISSS, Renta, aguinaldo, bono vacacional y Quincena 25.',
+      'Salario neto mensual y quincenal: AFP, ISSS, Renta, aguinaldo, bono vacacional y Quincena 25. Ingresá tu salario bruto o neto, y simulá un aumento.',
     componente: SalarioCalculator,
   },
   {

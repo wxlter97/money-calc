@@ -1,7 +1,8 @@
 <script>
   import {
     calcularDescuentosMensuales,
-    mensualAQuincenal,
+    calcularDescuentosQuincenales,
+    calcularSalarioBrutoDesdeNeto,
   } from '../../lib/deducciones.js';
   import {
     ANTIGUEDADES,
@@ -16,14 +17,22 @@
   import ResultRow from '../../components/ResultRow.svelte';
   import FormField from '../../components/FormField.svelte';
 
+  let modoIngreso = $state('bruto');
   let salarioTexto = $state('');
   let antiguedad = $state('1a3');
   let modoAntiguedad = $state('meses');
   let mesesTrabajados = $state(0);
   let fechaContratacion = $state('');
   let porcentajeBono = $state(30);
+  let porcentajeAumentoTexto = $state('');
 
-  let salario = $derived(Number(salarioTexto) || 0);
+  let salarioIngresado = $derived(Number(salarioTexto) || 0);
+
+  let salario = $derived(
+    modoIngreso === 'neto'
+      ? calcularSalarioBrutoDesdeNeto(salarioIngresado)
+      : salarioIngresado
+  );
 
   let diasTrabajados = $derived.by(() => {
     if (antiguedad !== 'menos1') return 0;
@@ -32,26 +41,7 @@
   });
 
   let descuentosMensuales = $derived(calcularDescuentosMensuales(salario));
-
-  let descuentosQuincenales = $derived.by(() => {
-    const m = descuentosMensuales;
-    const salarioQuincenal = salario / 2;
-    const afp = mensualAQuincenal(m.afp);
-    const afpPatronal = mensualAQuincenal(m.afpPatronal);
-    const isss = mensualAQuincenal(m.isss);
-    const isssPatronal = mensualAQuincenal(m.isssPatronal);
-    const renta = mensualAQuincenal(m.renta);
-    const totalDescuentos = afp + isss + renta;
-    return {
-      afp,
-      afpPatronal,
-      isss,
-      isssPatronal,
-      renta,
-      totalDescuentos,
-      salarioNeto: salarioQuincenal - totalDescuentos,
-    };
-  });
+  let descuentosQuincenales = $derived(calcularDescuentosQuincenales(salario));
 
   let quincena25 = $derived(
     calcularQuincena25({ salarioMensual: salario, antiguedad, diasTrabajados })
@@ -62,12 +52,48 @@
   );
 
   let mostrarResultados = $derived(salario > 0);
+
+  let porcentajeAumento = $derived(Number(porcentajeAumentoTexto) || 0);
+  let salarioConAumento = $derived(salario * (1 + porcentajeAumento / 100));
+  let descuentosMensualesAumento = $derived(calcularDescuentosMensuales(salarioConAumento));
+  let descuentosQuincenalesAumento = $derived(calcularDescuentosQuincenales(salarioConAumento));
+  let aumentoBrutoMensual = $derived(salarioConAumento - salario);
+  let aumentoNetoMensual = $derived(
+    descuentosMensualesAumento.salarioNeto - descuentosMensuales.salarioNeto
+  );
+  let mostrarAumento = $derived(mostrarResultados && porcentajeAumentoTexto !== '');
 </script>
 
 <div class="tarjeta">
   <h2>Calculá tu salario</h2>
 
-  <FormField etiqueta="Salario mensual">
+  <FormField etiqueta="¿Cómo querés ingresar tu salario?">
+    <div class="segmentado">
+      <button
+        type="button"
+        class="segmentado__opcion"
+        class:segmentado__opcion--activa={modoIngreso === 'bruto'}
+        onclick={() => (modoIngreso = 'bruto')}
+      >
+        Salario bruto
+      </button>
+      <button
+        type="button"
+        class="segmentado__opcion"
+        class:segmentado__opcion--activa={modoIngreso === 'neto'}
+        onclick={() => (modoIngreso = 'neto')}
+      >
+        Salario neto (lo que me pagan)
+      </button>
+    </div>
+  </FormField>
+
+  <FormField
+    etiqueta={modoIngreso === 'neto' ? 'Salario neto mensual' : 'Salario bruto mensual'}
+    ayuda={modoIngreso === 'neto'
+      ? 'Lo que recibís en tu cuenta después de descuentos. Calculamos el salario bruto que le corresponde.'
+      : ''}
+  >
     <div class="campo-monto">
       <span class="campo-monto__prefijo">$</span>
       <input type="number" min="0" step="0.01" placeholder="0.00" bind:value={salarioTexto} />
@@ -165,9 +191,27 @@
   </p>
 </div>
 
+<div class="tarjeta">
+  <h2>Calculá un aumento</h2>
+
+  <FormField
+    etiqueta="Porcentaje de aumento (%)"
+    ayuda="Se aplica sobre tu salario bruto actual, calculado o ingresado arriba."
+  >
+    <input type="number" min="0" step="0.1" placeholder="0" bind:value={porcentajeAumentoTexto} />
+  </FormField>
+</div>
+
 {#if mostrarResultados}
   <div class="rejilla--dos-columnas">
     <ResultPanel titulo="Mensual">
+      <ResultRow
+        etiqueta="Salario bruto mensual"
+        descripcion={modoIngreso === 'neto'
+          ? 'Estimado a partir del salario neto que ingresaste.'
+          : ''}
+        valor={formatoMoneda(salario)}
+      />
       <ResultRow
         etiqueta="AFP"
         descripcion="7.25% del salario."
@@ -203,6 +247,13 @@
 
     <ResultPanel titulo="Quincenal">
       <ResultRow
+        etiqueta="Salario bruto quincenal"
+        descripcion={modoIngreso === 'neto'
+          ? 'Estimado a partir del salario neto que ingresaste.'
+          : ''}
+        valor={formatoMoneda(salario / 2)}
+      />
+      <ResultRow
         etiqueta="AFP"
         descripcion="7.25% del salario."
         valor={formatoMoneda(descuentosQuincenales.afp)}
@@ -231,6 +282,46 @@
         etiqueta="Salario neto quincenal"
         descripcion="Lo que recibís al final de la quincena, después de descuentos."
         valor={formatoMoneda(descuentosQuincenales.salarioNeto)}
+        destacado
+      />
+    </ResultPanel>
+  </div>
+{/if}
+
+{#if mostrarAumento}
+  <div class="rejilla--dos-columnas">
+    <ResultPanel titulo="Mensual con aumento">
+      <ResultRow
+        etiqueta="Salario bruto mensual"
+        descripcion={`Aumento de ${formatoMoneda(aumentoBrutoMensual)} sobre tu salario bruto actual.`}
+        valor={formatoMoneda(salarioConAumento)}
+      />
+      <ResultRow
+        etiqueta="Total de descuentos"
+        valor={formatoMoneda(descuentosMensualesAumento.totalDescuentos)}
+      />
+      <ResultRow
+        etiqueta="Salario neto mensual"
+        descripcion={`Aumento de ${formatoMoneda(aumentoNetoMensual)} sobre tu salario neto actual.`}
+        valor={formatoMoneda(descuentosMensualesAumento.salarioNeto)}
+        destacado
+      />
+    </ResultPanel>
+
+    <ResultPanel titulo="Quincenal con aumento">
+      <ResultRow
+        etiqueta="Salario bruto quincenal"
+        descripcion={`Aumento de ${formatoMoneda(aumentoBrutoMensual / 2)} sobre tu salario bruto actual.`}
+        valor={formatoMoneda(salarioConAumento / 2)}
+      />
+      <ResultRow
+        etiqueta="Total de descuentos"
+        valor={formatoMoneda(descuentosQuincenalesAumento.totalDescuentos)}
+      />
+      <ResultRow
+        etiqueta="Salario neto quincenal"
+        descripcion={`Aumento de ${formatoMoneda(aumentoNetoMensual / 2)} sobre tu salario neto actual.`}
+        valor={formatoMoneda(descuentosQuincenalesAumento.salarioNeto)}
         destacado
       />
     </ResultPanel>
