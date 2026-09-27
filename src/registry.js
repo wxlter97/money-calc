@@ -16,6 +16,7 @@ import AhorroMensualCalculator from './calculators/ahorro-mensual/AhorroMensualC
 import FondoEmergenciaCalculator from './calculators/fondo-emergencia/FondoEmergenciaCalculator.svelte';
 import PrecioMaximoCompraCalculator from './calculators/precio-maximo-compra/PrecioMaximoCompraCalculator.svelte';
 import LoComproCalculator from './calculators/lo-compro/LoComproCalculator.svelte';
+import TarifaFreelanceCalculator from './calculators/tarifa-freelance/TarifaFreelanceCalculator.svelte';
 
 export const calculadoras = [
   {
@@ -105,5 +106,12 @@ export const calculadoras = [
     resumen:
       'Cuántos meses, días, horas y minutos de trabajo te cuesta un artículo según tu salario.',
     componente: LoComproCalculator,
+  },
+  {
+    slug: 'tarifa-freelance',
+    titulo: 'Tarifa freelance',
+    resumen:
+      'Cuánto cobrar por hora, día, semana, mes y proyecto según tu ingreso deseado, gastos, impuestos y tiempo facturable.',
+    componente: TarifaFreelanceCalculator,
   },
 ];
