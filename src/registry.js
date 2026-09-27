@@ -15,6 +15,7 @@ import JubilacionCalculator from './calculators/jubilacion/JubilacionCalculator.
 import AhorroMensualCalculator from './calculators/ahorro-mensual/AhorroMensualCalculator.svelte';
 import FondoEmergenciaCalculator from './calculators/fondo-emergencia/FondoEmergenciaCalculator.svelte';
 import PrecioMaximoCompraCalculator from './calculators/precio-maximo-compra/PrecioMaximoCompraCalculator.svelte';
+import LoComproCalculator from './calculators/lo-compro/LoComproCalculator.svelte';
 
 export const calculadoras = [
   {
@@ -97,5 +98,12 @@ export const calculadoras = [
     resumen:
       'Cuánto podés financiar según la cuota mensual que podés pagar, la tasa y el plazo.',
     componente: PrecioMaximoCompraCalculator,
+  },
+  {
+    slug: 'lo-compro',
+    titulo: '¿Lo compro?',
+    resumen:
+      'Cuántos meses, días, horas y minutos de trabajo te cuesta un artículo según tu salario.',
+    componente: LoComproCalculator,
   },
 ];
